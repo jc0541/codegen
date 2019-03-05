@@ -117,7 +117,8 @@ struct TypeDef {
 pub struct Variant {
     name: String,
     fields: Fields,
-    docs: Option<Docs>
+    docs: Option<Docs>,
+    attrs: Vec<String>
 }
 
 /// Defines a set of fields.
@@ -932,6 +933,7 @@ impl Variant {
             name: name.to_string(),
             fields: Fields::Empty,
             docs: None,
+            attrs: Vec::new(),
         }
     }
 
@@ -949,6 +951,12 @@ impl Variant {
         self
     }
 
+    /// Add an attribute to the variant
+    pub fn attr<T>(&mut self, attr: T) -> &mut Self where T: ToString {
+        self.attrs.push(attr.to_string());
+        self
+    }
+
     /// Add a tuple field to the variant.
     pub fn tuple(&mut self, ty: &str) -> &mut Self {
         self.fields.tuple(ty);
@@ -960,6 +968,8 @@ impl Variant {
         if let Some(ref docs) = self.docs {
             docs.fmt(fmt)?;
         }
+        let attr_slice = &self.attrs[..];
+        write!(fmt, "{}", attr_slice.join("\n"))?;
         write!(fmt, "{}", self.name)?;
         self.fields.fmt(fmt)?;
         write!(fmt, ",\n")?;
